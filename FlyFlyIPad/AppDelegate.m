@@ -1,8 +1,8 @@
 //
 //  AppDelegate.m
-//  FlyFlyIPad
+//  test
 //
-//  Created by Tim on 07/04/2014.
+//  Created by Tim on 26/02/2014.
 //  Copyright (c) 2014 edu.fontys.sm. All rights reserved.
 //
 
