@@ -20,9 +20,6 @@
 - (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
-    if (self) {
-        // Custom initialization
-    }
     return self;
 }
 
@@ -34,18 +31,11 @@
     
     self.scores = [NSMutableArray array];
     [self loadJSONData];
-
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - Table view data source
@@ -65,12 +55,11 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *CellIdentifier = @"SimpleTableCell";
-    SimpleTableCell *cell = (SimpleTableCell*)[tableView dequeueReusableCellWithIdentifier:CellIdentifier]; //forIndexPath:indexPath];
+    SimpleTableCell *cell = (SimpleTableCell*)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
     if (cell == nil) {
         NSArray* nib = [[NSBundle mainBundle] loadNibNamed:@"SimpleTableCell" owner:self options:nil];
         cell = [nib objectAtIndex:0];
-        //cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
     }
     
     // Configure the cell...
@@ -78,24 +67,27 @@
     ScoreObject* score = [self.scores objectAtIndex:currentRow];
     
     if (currentRow == 0) {
-        cell.backgroundColor = [UIColor colorWithRed:201.0/255.0 green:137.0/255.0 blue:16.0/255.0 alpha:0.8];
+        cell.backgroundColor = [UIColor colorWithRed:201.0/255.0 green:137.0/255.0 blue:16.0/255.0 alpha:0.8]; //gold color for the 1st position
     } else if (currentRow == 1) {
-        cell.backgroundColor = [UIColor colorWithRed:168.0/255.0 green:168.0/255.0 blue:168.0/255.0 alpha:0.8];
+        cell.backgroundColor = [UIColor colorWithRed:168.0/255.0 green:168.0/255.0 blue:168.0/255.0 alpha:0.8]; //silver color for the 2nd position
     } else if (currentRow == 2) {
-        cell.backgroundColor = [UIColor colorWithRed:150.0/255.0 green:90.0/255.0 blue:56.0/255.0 alpha:0.8];
+        cell.backgroundColor = [UIColor colorWithRed:150.0/255.0 green:90.0/255.0 blue:56.0/255.0 alpha:0.8]; //bronze color for the 3rd position
     }
     
-    cell.nameLabel.text = score.name;
-    cell.scoreLabel.text = score.score;
+    cell.nameLabel.text = score.name; //Allocate the name value in the score object to the nameLabel
+    cell.scoreLabel.text = score.score; //Allocate the score value in the score object to the scoreLabel
     
     return cell;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return 144;
+    return 144; //The cell height is 144 pixels
 }
 
+/**
+ Parse the JSONData and put in the scores array
+ */
 - (void) parseJSONData:(id)JSON {
     for (NSDictionary* dict in JSON) {
         ScoreObject* score = [[ScoreObject alloc] init];
@@ -106,6 +98,9 @@
     [self.tableView reloadData];
 }
 
+/**
+ Load the JSONData from the flyflyscores.json file
+ */
 - (void) loadJSONData {
     AFHTTPRequestOperationManager* manager = [AFHTTPRequestOperationManager manager];
     manager.responseSerializer = [AFJSONResponseSerializer serializer];
@@ -116,56 +111,5 @@
         NSLog(@"Error: %@", error);
     }];
 }
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    }   
-    else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a story board-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-
- */
 
 @end

@@ -10,6 +10,9 @@
 
 @interface HighscoresTableViewController : UITableViewController
 
+/**
+ The list of highscores
+ */
 @property NSMutableArray* scores;
 
 - (void) parseJSONData:(id) JSON;

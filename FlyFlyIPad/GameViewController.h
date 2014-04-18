@@ -13,7 +13,7 @@
 
 @property (weak, nonatomic) NSString* score;
 
-@property (weak, nonatomic) SKView* skView;
+@property (weak) SKView* skView;
 
 -(void)showButton;
 

@@ -24,40 +24,85 @@ static inline CGPoint CGPointMultiplyScalar(const CGPoint a, const CGFloat b)
 
 @implementation MyScene
 
+/**
+ The action that defines a move up motion
+ */
 SKAction *actionMoveUp;
+
+/**
+ The action that defines a move down motion
+ */
 SKAction *actionMoveDown;
+
+/**
+ Holds the time when a last update has happened
+ */
 NSTimeInterval _lastUpdateTime;
+
+/**
+ Holds the time of one tick (1/FPS)
+ */
 NSTimeInterval _dt;
+
+/**
+ Holds the time when the last orb was added
+ */
 NSTimeInterval _lastOrbAdded;
 
+/**
+ Determines the orb respawn time
+ */
 static float timeRequired = 1.0;
 
+/**
+ The player object (the bird)
+ */
 SKSpriteNode* player;
+
+/**
+ Animation frames of the bird sprite
+ */
 NSArray* playerAnimationFrames;
+
+/**
+ Animation frames of the orb sprite
+ */
 NSArray* orbOrangeAnimationFrames;
 
+/**
+ A label that holds the static string value "Score:"
+ */
 SKLabelNode* scoreLabel;
+
+/**
+ A label that holds the current score of the player
+ */
 SKLabelNode* scoreLabel_;
 
+/**
+ A label that holds the static string value "Hardcore!"
+ */
 SKLabelNode* comboLabel;
 
+/**
+ A label that holds the string "Combo Counter: " followed by the current score
+ */
 SKLabelNode* comboCounter;
-
-//NSMutableArray* orbs;
 
 -(id)initWithSize:(CGSize)size {
     if (self = [super initWithSize:size]) {
-        //[self removeAllActions];
-        //self.gameHasEnded = NO;
         /* Setup your scene here */
-        self.gameIsActive = NO;
-        timeRequired = 1.0;        
+        
+        self.gameIsActive = NO; //The game is not active yet until the player has told otherwise
+        timeRequired = 1.0; //Reset the timeRequired back to 1 second
         
         self.combo = [[Combo alloc] init];
-        [self.combo addObserver:self forKeyPath:@"combo" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil];
+        [self.combo addObserver:self forKeyPath:@"combo" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:nil]; //Observe value changes of the combo object
         
         
         self.backgroundColor = [SKColor whiteColor];
+        
+        // Setup all the labels!
         
         scoreLabel_ = [SKLabelNode labelNodeWithFontNamed:@"ChalkboardSE-Regular"];
         scoreLabel_.text = @"Score:";
@@ -92,25 +137,26 @@ SKLabelNode* comboCounter;
         
         [self addPlayer];
         
-        
-        
         orbOrangeAnimationFrames = [self getAnimationFrames:@"orbOrange"];
         
-        //orbs = [NSMutableArray array];
-        //[self addOrb:@"C"];
         [self addChild:scoreLabel_];
         [self addChild:scoreLabel];
         [self addChild:comboLabel];
         [self addChild:comboCounter];
         
         self.physicsWorld.gravity = CGVectorMake(0, 0);
-        self.physicsWorld.contactDelegate = self;
+        self.physicsWorld.contactDelegate = self; //Add the contactdelegate to self to enable collision detection on this scene
     }
     return self;
 }
 
+/**
+ Initialize and start the game!
+ */
 -(void) start
 {
+    //Setup the accelerometer!
+    
     self.manager = [[CMMotionManager alloc]init];
     self.manager.accelerometerUpdateInterval = .01;
     
@@ -126,8 +172,9 @@ SKLabelNode* comboCounter;
             });
         }];
     }
+
+    //Setup the audio players!
     
-    //self.backgroundColor = [SKColor colorWithRed:0.15 green:0.15 blue:0.3 alpha:1.0];
     NSError* cuteError;
     NSError* hardcoreError;
     NSError* noteError;
@@ -161,21 +208,33 @@ SKLabelNode* comboCounter;
     } else {
         [self.hardcoreAudioPlayer play];
     }
-    self.cuteAudioPlayer.delegate = self;
     
-    self.gameIsActive = YES;
+    self.cuteAudioPlayer.delegate = self; //Add a delegate of cuteAudioPlayer to self so the scene can detect when the audio has stopped playing
+    
+    self.gameIsActive = YES; //The game has started, so the game is active!
+    
+    [self animatePlayer];
+    
+    scoreLabel.text = @"0";
 }
 
 -(void) audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
     if (player == self.cuteAudioPlayer) {
-        [self gameOver];
+        [self gameOver]; //Stop the game!
     }
 }
 
+/**
+ Play the NotePickup sound
+ @warning This method is no longer supported!
+ */
 -(void) playNotePickupSound {
     [self.notePickupAudioPlayer play];
 }
 
+/**
+ Adds a bouncy animation to a label and plays it once
+ */
 -(void) bouncyText:(SKLabelNode*)label {
     [label runAction:[SKAction scaleTo:0.9 duration:0.2] completion:^{
         [label runAction:[SKAction scaleTo:1.1 duration:0.2] completion:^{
@@ -185,6 +244,7 @@ SKLabelNode* comboCounter;
 }
 
 -(void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    // Do things when the combo counter has changed its value
     if ([keyPath isEqualToString:@"combo"]) {
         NSNumber* comboNumber = [change objectForKey:NSKeyValueChangeNewKey];
         NSNumber* comboNumberOld = [change objectForKey:NSKeyValueChangeOldKey];
@@ -192,15 +252,21 @@ SKLabelNode* comboCounter;
         int oldCombo = [comboNumberOld intValue];
         comboCounter.text = [NSString stringWithFormat:@"Combo Counter: %dx", newCombo];
         if (newCombo != oldCombo) {
+            //The combo has changed its value
+            
             [self bouncyText:comboCounter];
         }
         if (newCombo == 0 && oldCombo >= 5) {
+            //Transfer from hardcore mode to cute mode
+            
             [self changeBackgroundImage:@"background.png"];
             BG_VELOCITY = 100.0;
             timeRequired = 1.0;
             self.hardcoreAudioPlayer.volume = 0.0;
             self.cuteAudioPlayer.volume = 1.0;
         } else if (newCombo == 5 && oldCombo == 4) {
+            //Transfer from cute mode to hardcore mode
+            
             [self changeBackgroundImage:@"backgroundHardcore.png"];
             BG_VELOCITY = 180.0;
             [comboLabel runAction:[SKAction fadeAlphaTo:1.0 duration:2.0] completion:^{
@@ -209,13 +275,17 @@ SKLabelNode* comboCounter;
             self.hardcoreAudioPlayer.volume = 1.0;
             self.cuteAudioPlayer.volume = 0.0;
         } if (newCombo % 5 == 0 && newCombo > 0) {
+            //Increase the speed each time the combo counter is increased by 5
+            
             timeRequired *= 0.9;
         }
     }
-    //NSLog(@"current speed: %f",timeRequired);
-    //[super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
+/**
+ Change the background image
+ @param image The new background image
+ */
 -(void)changeBackgroundImage:(NSString*)image {
     [self enumerateChildNodesWithName:@"background" usingBlock: ^(SKNode *node, BOOL *stop)
     {
@@ -224,11 +294,16 @@ SKLabelNode* comboCounter;
     }];
 }
 
+/**
+ Get the animation frames from the atlas
+ @param atlasName The atlas name
+ @return An array of SKTextures
+ */
 -(NSMutableArray*)getAnimationFrames:(NSString*)atlasName {
     NSMutableArray* animationFrames = [NSMutableArray array];
     
     SKTextureAtlas* atlas = [SKTextureAtlas atlasNamed:atlasName];
-    int numImages = atlas.textureNames.count;
+    NSUInteger numImages = atlas.textureNames.count;
     
     for (int i=1; i <= numImages; i++) {
         NSString* textureName = [NSString alloc];
@@ -244,6 +319,9 @@ SKLabelNode* comboCounter;
     return animationFrames;
 }
 
+/**
+ Move the player by touching the screen. Only for debugging purposes.
+ */
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     /* Called when a touch begins */
     
@@ -259,17 +337,25 @@ SKLabelNode* comboCounter;
         if (player.position.y > 60) {
             actionMoveDown = [SKAction moveByX:0 y:touchLocation.y - player.position.y duration:0.2];
             [player runAction:actionMoveDown];
-            
         }
     }
 }
 
+/**
+ Moves the player judged on the accelerometer readings
+ @param x The X-acceleration of the accelerometer
+ @param y The Y-acceleration of the accelerometer
+ @param z The Z-acceleration of the accelerometer
+ */
 -(void)movePlayer:(double)x accelerationY:(double)y accelerationZ:(double)z {
     if (fabs(y) > 0.2) {
         [player.physicsBody applyForce:CGVectorMake(0, y * 40.0)];
     }
 }
 
+/**
+ Create two background images alongside eachother
+ */
 -(void)initalizingScrollingBackground
 {
     for (double i = 0.0; i < 2.0; i++) {
@@ -282,18 +368,23 @@ SKLabelNode* comboCounter;
     
 }
 
+/**
+ End the game!
+ */
 - (void)gameOver
 {
-        self.parentController.score = scoreLabel.text;
-        self.gameIsActive = NO;
-        [self.cuteAudioPlayer stop];
-        [self.hardcoreAudioPlayer stop];
-    [self.manager stopAccelerometerUpdates];
-        [self.parentController showButton];
+    self.parentController.score = scoreLabel.text; //Pass the score value over to the parent
+    self.gameIsActive = NO; //The game is no longer active
+    [self.cuteAudioPlayer stop]; //Stop playing the audio
+    [self.hardcoreAudioPlayer stop]; //Stop playing the audio
+    [self.manager stopAccelerometerUpdates]; //Stop reading the accelerometer
+    [self.parentController showButton]; //Show the game over button
+    [self removeOrbs]; //Remove all the orbs off the screen
 }
 
-
-
+/**
+ Initialize the player object and draw it on the screen
+ */
 - (void)addPlayer
 {
     SKTexture* temp = playerAnimationFrames[0];
@@ -311,9 +402,12 @@ SKLabelNode* comboCounter;
     player.physicsBody.mass = 0.03;
     
     [self addChild:player];
-    [self animatePlayer];
 }
 
+/**
+ Initialize the orb object and draw it on the screen
+ @param note The musical note value (no longer supported!)
+ */
 - (void)addOrb:(NSString*)note
 {
     SKTexture* temp = orbOrangeAnimationFrames[0];
@@ -331,12 +425,15 @@ SKLabelNode* comboCounter;
     node.physicsBody.contactTestBitMask = playerCategory;
     node.physicsBody.collisionBitMask = 0;
     node.physicsBody.usesPreciseCollisionDetection = YES;
-    
-    //[orbs addObject:node];
+
     [self addChild:node];
     [self animateOrb:node];
 }
 
+/**
+ Animate the orb
+ @param orb The orb to animate
+ */
 - (void)animateOrb:(SKSpriteNode*)orb
 {
     [orb runAction:[SKAction repeatActionForever:[SKAction animateWithTextures:orbOrangeAnimationFrames timePerFrame:0.2f resize:YES restore:YES]] withKey:@"orbingInPlace"];
@@ -344,6 +441,9 @@ SKLabelNode* comboCounter;
     return;
 }
 
+/**
+ Animate the player
+ */
 - (void)animatePlayer
 {
     [player runAction:[SKAction repeatActionForever:[SKAction animateWithTextures:playerAnimationFrames timePerFrame:0.1f resize:YES restore:YES]] withKey:@"flyingInPlace"];
@@ -351,6 +451,9 @@ SKLabelNode* comboCounter;
     return;
 }
 
+/**
+ Move the background nodes
+ */
 - (void)moveBg
 {
     [self enumerateChildNodesWithName:@"background" usingBlock: ^(SKNode *node, BOOL *stop)
@@ -359,7 +462,6 @@ SKLabelNode* comboCounter;
          CGPoint bgVelocity = CGPointMake(-BG_VELOCITY, 0);
          CGPoint amtToMove = CGPointMultiplyScalar(bgVelocity,_dt);
          bg.position = CGPointAdd(bg.position, amtToMove);
-         //[bg setTexture:[SKTexture textureWithImage:[UIImage imageNamed:@"backgroundHardcore.png"]]];
          
          //Checks if bg node is completely scrolled of the screen, if yes then put it at the end of the other node
          if (bg.position.x <= -bg.size.width)
@@ -370,6 +472,9 @@ SKLabelNode* comboCounter;
      }];
 }
 
+/**
+ Move the orb nodes
+ */
 - (void)moveOrb {
     [self enumerateChildNodesWithName:@"orb" usingBlock:^(SKNode *node, BOOL *stop) {
         SKSpriteNode* orb = (SKSpriteNode*) node;
@@ -378,16 +483,26 @@ SKLabelNode* comboCounter;
         CGPoint amtToMove = CGPointMultiplyScalar(orbVelocity,_dt);
         orb.position = CGPointAdd(orb.position, amtToMove);
         
-        //Checks if bg node is completely scrolled of the screen, if yes then put it at the end of the other node
+        //Checks if orb node is completely scrolled of the screen, if yes then reduce the score by 1
         if (orb.position.x <= -orb.size.width)
         {
-            //NSLog((NSString*)[[orb userData] objectForKey:@"note"]);
             [orb removeFromParent];
             self.combo.combo = 0;
-            
-                //[self gameOver];
-            
+            int score = scoreLabel.text.intValue;
+            scoreLabel.text = [NSString stringWithFormat:@"%d", score - 1];
+            [self bouncyText:scoreLabel];
+            [self bouncyText:scoreLabel_];
         }
+    }];
+}
+
+/**
+ Remove all the orbs in the scene
+ */
+- (void)removeOrbs {
+    [self enumerateChildNodesWithName:@"orb" usingBlock:^(SKNode *node, BOOL *stop) {
+        SKSpriteNode* orb = (SKSpriteNode*) node;
+        [orb removeFromParent];
     }];
 }
 
@@ -404,17 +519,21 @@ SKLabelNode* comboCounter;
         }
         _lastUpdateTime = currentTime;
     
+        if (currentTime > 0.5 && currentTime < 1) {
+            [self removeOrbs]; //Attempt to solve the weird bug that one orb is placed on the screen when you replay the game. To no avail.
+        }
+        
         if (currentTime - _lastOrbAdded > timeRequired) {
             _lastOrbAdded = currentTime + timeRequired;
 
-                [self addOrb:@"C"];
+            [self addOrb:@"C"]; //Add a orb to the scene
         }
         [self moveBg];
         [self moveOrb];
         
         if (player.position.y - player.size.height > self.frame.size.height
             || player.position.y + player.size.height < 0) {
-            [self gameOver];
+            [self gameOver]; //The player has moved off the screen, so game over!
         }
     }
 }
@@ -436,6 +555,8 @@ SKLabelNode* comboCounter;
     if ((firstBody.categoryBitMask & playerCategory) != 0 &&
         (secondBody.categoryBitMask & orbCategory) != 0)
     {
+        //A player has collided with an orb!
+        
         [[secondBody node] removeFromParent];
         self.combo.combo++;
         int score = scoreLabel.text.intValue;

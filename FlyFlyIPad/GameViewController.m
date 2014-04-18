@@ -18,21 +18,9 @@
 
 @implementation GameViewController
 
-/*- (void)viewWillLayoutSubviews{
-    [super viewWillLayoutSubviews];
-    
-    SKView * skView = (SKView *)self.view;
-    
-    if (!skView.scene) {        
-        // Create and configure the scene.
-        MyScene * scene = [MyScene sceneWithSize:skView.bounds.size];
-        scene.scaleMode = SKSceneScaleModeAspectFill;
-        scene.parentController = self;
-        
-        // Present the scene.
-        [skView presentScene:scene];
-    }
-}*/
+/**
+ Fired when btnStart is clicked on.
+ */
 - (IBAction)btnStartClicked:(id)sender {
     [self.btnStart setHidden:YES];
     MyScene* scene = (MyScene*) self.skView.scene;
@@ -43,49 +31,47 @@
 {
     [super viewDidLoad];
     
-    self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"LaunchImage"]];
+    self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"LaunchImage.png"]]; //Default-Portrait.png
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
 
+    //The view controller's view is a SKView
     self.skView = (SKView *)self.view;
 
-    //if (!self.skView.scene) {
-        // Create and configure the scene.
-        MyScene * scene = [MyScene sceneWithSize:self.skView.bounds.size];
-        scene.scaleMode = SKSceneScaleModeAspectFill;
-        scene.parentController = self;
+    //Create a new MyScene scene on which the game will be displayed
+    MyScene * scene = [MyScene sceneWithSize:self.skView.bounds.size];
+    scene.scaleMode = SKSceneScaleModeAspectFill;
+    scene.parentController = self;
         
-        // Present the scene.
-        [self.skView presentScene:scene];
-    //}
+    // Present the scene.
+    [self.skView presentScene:scene];
+
 }
 
 -(BOOL)prefersStatusBarHidden{
     return YES;
 }
 
+/**
+ Show the game over button when the player is game over.
+ */
 -(void)showButton
 {
     [self.btnGameOver setHidden:NO];
-    //[self.skView removeFromSuperview];
-    //self.skView = nil;
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     if ([[segue identifier] isEqualToString:@"navigateToScore"]) {
         ScoreViewController* cont = [segue destinationViewController];
-        cont.score = self.score;
+        cont.score = self.score; //Pass over the value of score property of this view controller to the ScoreViewController
         
-        [self.skView.scene removeAllActions];
-        [self.skView.scene removeAllChildren];
+        [self.skView.scene removeAllActions]; //Reset the scene of all actions
+        [self.skView.scene removeAllChildren]; //Reset the scene of all children
     }
-    //[self.view removeFromSuperview];
-    //self.view = nil;
-    //[self dismissViewControllerAnimated:NO completion:nil];
 }
 
 @end

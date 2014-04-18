@@ -7,11 +7,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <CoreMotion/CoreMotion.h>
 
 @interface InstructionsViewController : UIViewController
-@property (weak, nonatomic) IBOutlet UILabel *labelX;
-@property (weak, nonatomic) IBOutlet UILabel *labelY;
-@property (weak, nonatomic) IBOutlet UILabel *labelZ;
-@property (strong) CMMotionManager* manager;
 @end

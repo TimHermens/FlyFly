@@ -10,6 +10,9 @@
 
 @interface ScoreViewController : UIViewController
 
+/**
+ The score you achieved in one game session
+ */
 @property (nonatomic) NSString* score;
 
 @end

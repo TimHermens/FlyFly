@@ -28,24 +28,8 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view.
     
-    self.manager = [[CMMotionManager alloc]init];
-    //manager.accelerometerUpdateInterval = .1;
     
-    if ([self.manager isAccelerometerAvailable]) {
-        NSOperationQueue* queue = [[NSOperationQueue alloc]init];
-        [self.manager startAccelerometerUpdatesToQueue:queue withHandler:^(CMAccelerometerData *accelerometerData, NSError *error) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                double x = accelerometerData.acceleration.x;
-                double y = accelerometerData.acceleration.y;
-                double z = accelerometerData.acceleration.z;
-                self.labelX.text = [NSString stringWithFormat:@"x: %f", x];
-                self.labelY.text = [NSString stringWithFormat:@"y: %f", y];
-                self.labelZ.text = [NSString stringWithFormat:@"z: %f", z];
-                NSLog(@"test");
-                //[self movePlayer:x accelerationX:y accelerationY:z];
-            });
-        }];
-    }
+    self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"background.png"]];
 }
 
 - (void)didReceiveMemoryWarning
