@@ -526,7 +526,7 @@ SKLabelNode* comboCounter;
         if (currentTime - _lastOrbAdded > timeRequired) {
             _lastOrbAdded = currentTime + timeRequired;
 
-            [self addOrb:@"C"]; //Add a orb to the scene
+            [self addOrb:@"C"]; //Add a orb to the scene.
         }
         [self moveBg];
         [self moveOrb];
